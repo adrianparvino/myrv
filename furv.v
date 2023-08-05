@@ -40,24 +40,17 @@ wire cout;
 decoder decoder(instruction, imm, op, ra, rb, rd, imm_b, wb, mem_read, mem, branch, comparison);
 alu alu(branch ? pc : r[ra], imm_b ? imm : r[rb], d, 1'b0, cout, op);
 
-reg cc;
+wire [1:0] cop = comparison[2:1];
+wire cc = (cop == 0) ? r[ra] == r[rb]
+        : (cop == 2) ? $signed(r[ra]) < $signed(r[rb])
+        :              r[ra] < r[rb];
+
 always @(negedge clk) begin
     if (wb) begin
         r[rd] = d;
     end
 
-    case ({branch, comparison[2:1]})
-      4'b100:
-        cc = r[ra] == r[rb];
-      4'b110:
-        cc = $signed(r[ra]) < $signed(r[rb]);
-      4'b111:
-        cc = r[ra] < r[rb];
-      default:
-        cc = 1'b1;
-    endcase
-
-    pc = (cc ^ comparison[0]) ? d : pc + 4;
+    pc = (branch && (cc ^ comparison[0])) ? d : pc + 4;
 end
 
 endmodule
