@@ -1,5 +1,5 @@
 module furv(
-    input [31:0] instruction, 
+    input [31:0] instruction,
     output reg [31:0] pc,
 
     inout [31:0] data,
@@ -21,7 +21,8 @@ reg [31:0] r [31:0];
 initial for (i=0;i<32;i=i+1) r[i] = 32'b0;
 
 wire [31:0] imm;
-wire [2:0] op;
+wire [1:0] alu_op;
+wire alt_op;
 wire [4:0] ra;
 wire [4:0] rb;
 wire [4:0] rd;
@@ -31,11 +32,13 @@ wire branch;
 wire [2:0] comparison;
 
 wire [31:0] d;
+wire [31:0] d_;
 
 decoder decoder(
     .instruction(instruction),
 
-    .op(op),
+    .alu_op(alu_op),
+    .alt_op(alt_op),
 
     .ra(ra),
     .rb(rb),
@@ -51,7 +54,16 @@ decoder decoder(
     .branch(branch),
     .comparison(comparison)
 );
-alu alu(branch ? pc : r[ra], sel_imm_b ? imm : r[rb], d, op);
+
+alu alu(
+    branch ? pc : r[ra],
+    sel_imm_b ? imm : r[rb],
+    d,
+    d_,
+
+    alu_op,
+    alt_op
+);
 
 wire [1:0] cop = comparison[2:1];
 wire cc = (cop == 0) ? r[ra] == r[rb]
