@@ -17,12 +17,8 @@ assign addr = d;
 
 reg [31:0] r [31:0];
 integer i;
-initial begin
-    for (i=0;i<32;i=i+1)
-        r[i] = 32'b0;
 
-    r[1] = 32'b1;
-end
+initial for (i=0;i<32;i=i+1) r[i] = 32'b0;
 
 wire [31:0] imm;
 wire [2:0] op;
