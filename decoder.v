@@ -14,7 +14,6 @@ module decoder(
     output reg [2:0] comparison
 );
 
-wire [6:0] opcode = instruction[6:0];
 wire [2:0] funct3 = instruction[14:12];
 wire [6:0] funct7 = instruction[31:25];
 
@@ -24,8 +23,21 @@ assign alu_ops[3'h7] = 2'h1;
 assign alu_ops[3'h6] = 2'h2;
 assign alu_ops[3'h4] = 2'h3;
 
+reg [2:0] instruction_type;
+
 always @(*) begin
-    if (opcode == 7'b0110011) begin
+    casez (instruction[6:2])
+    5'b01100: instruction_type = 0; // R-type
+    5'b00100, 5'b00000, 5'b11001, 5'b11100: instruction_type = 1; // I-type
+    5'b01000: instruction_type = 2; // S-type
+    5'b11000: instruction_type = 3; // B-type
+    5'b11011: instruction_type = 4; // J-type
+    5'b01101, 5'b00101: instruction_type = 5; // U-type
+    5'bxxxxx: instruction_type = 'bx;
+    endcase
+
+    casez (instruction_type)
+    0: begin
         // R-type
         imm = 32'b0;
         alu_op = alu_ops[funct3];
@@ -39,7 +51,8 @@ always @(*) begin
         mem = 0;
         branch = 0;
         comparison = 3'b0;
-    end else if (opcode == 7'b0010011) begin
+    end
+    1: begin
         // I-type
         imm = {{21{instruction[31]}}, instruction[30:20]};
         alu_op = alu_ops[funct3];
@@ -53,7 +66,8 @@ always @(*) begin
         mem = 0;
         branch = 0;
         comparison = 3'b0;
-    end else if (opcode == 7'b0100011) begin
+    end
+    2: begin
         // S-type
         imm = {{21{instruction[31]}}, instruction[30:25], instruction[11:8], instruction[7]};
         alu_op = 2'b0;
@@ -67,7 +81,8 @@ always @(*) begin
         mem = 1;
         branch = 0;
         comparison = 3'b0;
-    end else if (opcode == 7'b1100011) begin
+    end
+    3: begin
         // B-type
         imm = {{20{instruction[31]}}, instruction[7], instruction[30:25], instruction[11:8], 1'b0};
         alu_op = 2'b0;
@@ -81,7 +96,8 @@ always @(*) begin
         mem = 1;
         branch = 1;
         comparison = funct3;
-    end else begin
+    end
+    default: begin
         // undefined
         imm = {{20{instruction[31]}}, instruction[7], instruction[30:25], instruction[11:8], 1'b0};
         alu_op = 2'b0;
@@ -95,7 +111,8 @@ always @(*) begin
         mem = 1;
         branch = 1;
         comparison = funct3;
-      end
+    end
+    endcase
 end
-    
+
 endmodule
