@@ -32,7 +32,25 @@ wire [2:0] comparison;
 
 wire [31:0] d;
 
-decoder decoder(instruction, imm, op, ra, rb, rd, sel_imm_b, wb, mem_read, mem, branch, comparison);
+decoder decoder(
+    .instruction(instruction),
+
+    .op(op),
+
+    .ra(ra),
+    .rb(rb),
+    .rd(rd),
+
+    .imm(imm),
+    .sel_imm_b(sel_imm_b),
+
+    .wb(wb),
+    .mem(mem),
+    .mem_read(mem_read),
+
+    .branch(branch),
+    .comparison(comparison)
+);
 alu alu(branch ? pc : r[ra], sel_imm_b ? imm : r[rb], d, op);
 
 wire [1:0] cop = comparison[2:1];
