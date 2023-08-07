@@ -22,30 +22,40 @@ initial for (i=0;i<32;i=i+1) r[i] = 32'b0;
 
 wire [31:0] imm;
 wire [1:0] alu_op;
+wire [1:0] alu2_op;
 wire alt_op;
+wire alt2_op;
 wire [4:0] ra;
 wire [4:0] rb;
 wire [4:0] rd;
+wire sel_pc_a;
 wire sel_imm_b;
+wire sel_imm_b2;
 wire wb;
 wire branch;
+wire sel_d;
 wire [2:0] comparison;
 
 wire [31:0] d;
-wire [31:0] d_;
+wire [31:0] d2;
 
 decoder decoder(
     .instruction(instruction),
 
     .alu_op(alu_op),
+    .alu2_op(alu2_op),
     .alt_op(alt_op),
+    .alt2_op(alt2_op),
 
     .ra(ra),
     .rb(rb),
     .rd(rd),
 
     .imm(imm),
+    .sel_pc_a(sel_pc_a),
     .sel_imm_b(sel_imm_b),
+    .sel_imm_b2(sel_imm_b2),
+    .sel_d(sel_d),
 
     .wb(wb),
     .mem(mem),
@@ -56,24 +66,27 @@ decoder decoder(
 );
 
 alu alu(
-    branch ? pc : r[ra],
+    sel_pc_a ? pc : r[ra],
     sel_imm_b ? imm : r[rb],
+
+    r[ra],
+    sel_imm_b2 ? imm : r[rb],
+
     d,
-    d_,
+    d2,
 
     alu_op,
-    alt_op
+    alu2_op,
+    alt_op,
+    alt2_op
 );
 
-wire [1:0] cop = comparison[2:1];
-wire cc = (cop == 0) ? r[ra] == r[rb]
-        : (cop == 2) ? $signed(r[ra]) < $signed(r[rb])
-        :              r[ra] < r[rb];
+wire cc = !comparison[2] ? r[ra] == r[rb] : d2[0];
 wire branch_taken = branch && (cc ^ comparison[0]);
 
 always @(negedge clk) begin
     if (wb) begin
-        r[rd] <= d;
+        r[rd] <= sel_d ? d2 : d;
     end
 
     pc <= branch_taken ? d : pc + 4;
