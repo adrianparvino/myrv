@@ -25,15 +25,15 @@ wire [2:0] op;
 wire [4:0] ra;
 wire [4:0] rb;
 wire [4:0] rd;
-wire imm_b;
+wire sel_imm_b;
 wire wb;
 wire branch;
 wire [2:0] comparison;
 
 wire [31:0] d;
 
-decoder decoder(instruction, imm, op, ra, rb, rd, imm_b, wb, mem_read, mem, branch, comparison);
-alu alu(branch ? pc : r[ra], imm_b ? imm : r[rb], d, op);
+decoder decoder(instruction, imm, op, ra, rb, rd, sel_imm_b, wb, mem_read, mem, branch, comparison);
+alu alu(branch ? pc : r[ra], sel_imm_b ? imm : r[rb], d, op);
 
 wire [1:0] cop = comparison[2:1];
 wire cc = (cop == 0) ? r[ra] == r[rb]

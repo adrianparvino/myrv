@@ -5,7 +5,7 @@ module decoder(
     output reg [4:0] ra,
     output reg [4:0] rb,
     output reg [4:0] rd,
-    output reg imm_b,
+    output reg sel_imm_b,
     output reg wb,
     output reg mem_read,
     output reg mem,
@@ -29,7 +29,7 @@ always @(*) begin
         ra = instruction[19:15];
         rb = instruction[24:20];
         rd = instruction[11:7];
-        imm_b = 0;
+        sel_imm_b = 0;
         wb = rd != 0;
         mem_read = 0;
         mem = 0;
@@ -42,7 +42,7 @@ always @(*) begin
         ra = instruction[19:15];
         rb = 5'b0;
         rd = instruction[11:7];
-        imm_b = 1;
+        sel_imm_b = 1;
         wb = rd != 0;
         mem_read = 0;
         mem = 0;
@@ -55,7 +55,7 @@ always @(*) begin
         ra = instruction[19:15];
         rb = instruction[24:20];
         rd = 5'b0;
-        imm_b = 1;
+        sel_imm_b = 1;
         wb = 0;
         mem_read = 0;
         mem = 1;
@@ -68,7 +68,7 @@ always @(*) begin
         ra = instruction[19:15];
         rb = instruction[24:20];
         rd = 5'b0;
-        imm_b = 1;
+        sel_imm_b = 1;
         wb = 0;
         mem_read = 0;
         mem = 1;
@@ -81,7 +81,7 @@ always @(*) begin
         ra = instruction[19:15];
         rb = instruction[24:20];
         rd = 5'b0;
-        imm_b = 1;
+        sel_imm_b = 1;
         wb = 0;
         mem_read = 0;
         mem = 1;
