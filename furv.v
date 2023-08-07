@@ -10,14 +10,14 @@ module furv(
     input clk
 );
 
+integer i;
+
 initial pc = 0;
 
 assign data = (mem && !mem_read) ? r[rb] : 'hz;
 assign addr = d;
 
 reg [31:0] r [31:0];
-integer i;
-
 initial for (i=0;i<32;i=i+1) r[i] = 32'b0;
 
 wire [31:0] imm;
