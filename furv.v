@@ -39,13 +39,14 @@ wire [1:0] cop = comparison[2:1];
 wire cc = (cop == 0) ? r[ra] == r[rb]
         : (cop == 2) ? $signed(r[ra]) < $signed(r[rb])
         :              r[ra] < r[rb];
+wire branch_taken = branch && (cc ^ comparison[0]);
 
 always @(negedge clk) begin
     if (wb) begin
-        r[rd] = d;
+        r[rd] <= d;
     end
 
-    pc = (branch && (cc ^ comparison[0])) ? d : pc + 4;
+    pc <= branch_taken ? d : pc + 4;
 end
 
 endmodule
