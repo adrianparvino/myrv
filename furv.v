@@ -12,7 +12,7 @@ module furv(
 
 initial pc = 0;
 
-assign data = r[rb];
+assign data = (mem && !mem_read) ? r[rb] : 'hz;
 assign addr = d;
 
 reg [31:0] r [31:0];
