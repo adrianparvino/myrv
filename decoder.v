@@ -10,7 +10,6 @@ module decoder(
     output reg [4:0] rd,
     output reg sel_pc_a,
     output reg sel_imm_b,
-    output reg sel_imm_b2,
     output reg [1:0] wb,
     output reg mem_read,
     output reg mem,
@@ -33,8 +32,7 @@ function [1:0] alu2_ops (input [2:0] funct3);
     alu2_ops = {funct3[2], funct3[1]};
 endfunction
 
-reg sel_d_ [7:0];
-initial begin
+reg sel_d_ [7:0]; initial begin
     sel_d_[3'b000] = 0;
     sel_d_[3'b001] = 1;
     sel_d_[3'b010] = 1;
@@ -57,20 +55,20 @@ wire u_type = instruction_ == 5'b01101 || instruction_ == 5'b00101;
 // wire j_type = instruction_ == 5'b11011;
 
 always @(*) begin 
+    mem = &(~{instruction[6], instruction[4:2]});
+    mem_read = !instruction[5];
+    ra = instruction[19:15];
+    rb = instruction[24:20];
+    rd = instruction[11:7];
+
     if (r_type) begin        // R-type
         imm = 32'b0;
         alu_op = alu_ops(funct3);
         alu2_op = alu2_ops(funct3);
         alt_op = funct7 == 'h20;
         alt2_op = funct7 == 'h20;
-        ra = instruction[19:15];
-        rb = instruction[24:20];
-        rd = instruction[11:7];
-        sel_imm_b = 0;
-        sel_imm_b2 = 0;
+        sel_imm_b = sel_d_[funct3];
         wb = rd != 0 ? {1'b1, sel_d_[funct3]} : 0;
-        mem_read = 0;
-        mem = 0;
         sel_pc_a = 0;
         branch = 0;
         comparison = 3'b0;
@@ -80,14 +78,8 @@ always @(*) begin
         alu2_op = alu2_ops(funct3);
         alt_op = 0;
         alt2_op = imm[10];
-        ra = instruction[19:15];
-        rb = 5'b0;
-        rd = instruction[11:7];
-        sel_imm_b = 1;
-        sel_imm_b2 = 1;
+        sel_imm_b = !sel_d_[funct3];
         wb = rd != 0 ? {1'b1, sel_d_[funct3]} : 0;
-        mem_read = 0;
-        mem = 0;
         sel_pc_a = 0;
         branch = 0;
         comparison = 3'b0;
@@ -97,14 +89,8 @@ always @(*) begin
         alu2_op = 0;
         alt_op = 0;
         alt2_op = 0;
-        ra = instruction[19:15];
-        rb = instruction[24:20];
-        rd = 5'b0;
         sel_imm_b = 1;
-        sel_imm_b2 = 1;
         wb = 0;
-        mem_read = 0;
-        mem = 1;
         sel_pc_a = 0;
         branch = 0;
         comparison = 3'b0;
@@ -114,14 +100,8 @@ always @(*) begin
         alu2_op = 1; // Comparison
         alt_op = 0;
         alt2_op = 0;
-        ra = instruction[19:15];
-        rb = instruction[24:20];
-        rd = 5'b0;
         sel_imm_b = 1;
-        sel_imm_b2 = 0;
         wb = 0;
-        mem_read = 0;
-        mem = 1;
         sel_pc_a = 1;
         branch = 1;
         comparison = funct3;
@@ -131,14 +111,8 @@ always @(*) begin
         alu2_op = 3;
         alt_op = 0;
         alt2_op = 0;
-        ra = 5'b0;
-        rb = 5'b0;
-        rd = instruction[11:7];
-        sel_imm_b = 1;
-        sel_imm_b2 = 1;
+        sel_imm_b = !instruction[5];
         wb = rd != 0 ? {1'b1, instruction[5]} : 0; // 1: lui, 0: auipc
-        mem_read = 0;
-        mem = 0;
         sel_pc_a = 1;
         branch = 0;
         comparison = 0;
@@ -148,14 +122,8 @@ always @(*) begin
         alu2_op = 0;
         alt_op = 0;
         alt2_op = 0;
-        ra = 5'b0;
-        rb = 5'b0;
-        rd = instruction[11:7];
         sel_imm_b = 1;
-        sel_imm_b2 = 0;
         wb = rd != 0 ? 1 : 0;
-        mem_read = 0;
-        mem = 0;
         sel_pc_a = 1;
         branch = 1;
         comparison = 0;

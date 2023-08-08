@@ -30,7 +30,6 @@ wire [4:0] rb;
 wire [4:0] rd;
 wire sel_pc_a;
 wire sel_imm_b;
-wire sel_imm_b2;
 wire [1:0] wb;
 wire branch;
 wire [2:0] comparison;
@@ -53,7 +52,6 @@ decoder decoder(
     .imm(imm),
     .sel_pc_a(sel_pc_a),
     .sel_imm_b(sel_imm_b),
-    .sel_imm_b2(sel_imm_b2),
 
     .wb(wb),
     .mem(mem),
@@ -68,7 +66,7 @@ alu alu(
     sel_imm_b ? imm : r[rb],
 
     r[ra],
-    sel_imm_b2 ? imm : r[rb],
+    !sel_imm_b ? imm : r[rb],
 
     d,
     d2,
