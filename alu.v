@@ -33,7 +33,7 @@ always @* begin
     case (alu2_op)
         0: d2 = a2 << b2[4:0];
         1: d2 = {31'b0, (signed_bias ^ a2) < (signed_bias ^ b2)};
-        2: {ignore, d2} = {alt2_op & a2[31] ? 32'hffffffff : 0, a2} >> b2[4:0];
+        2: {ignore, d2} = {alt2_op & a2[31] ? 32'hffffffff : 32'b0, a2} >> b2[4:0];
         3: d2 = b2;
     endcase
 end
