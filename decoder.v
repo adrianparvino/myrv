@@ -11,8 +11,7 @@ module decoder(
     output reg sel_pc_a,
     output reg sel_imm_b,
     output reg sel_imm_b2,
-    output reg wb,
-    output reg sel_d,
+    output reg [1:0] wb,
     output reg mem_read,
     output reg mem,
     output reg branch,
@@ -69,13 +68,12 @@ always @(*) begin
         rd = instruction[11:7];
         sel_imm_b = 0;
         sel_imm_b2 = 0;
-        wb = rd != 0;
+        wb = rd != 0 ? {1'b1, sel_d_[funct3]} : 0;
         mem_read = 0;
         mem = 0;
         sel_pc_a = 0;
         branch = 0;
         comparison = 3'b0;
-        sel_d = sel_d_[funct3];
     end else if (i_type) begin        // I-type
         imm = {{21{instruction[31]}}, instruction[30:20]};
         alu_op = alu_ops(funct3);
@@ -87,13 +85,12 @@ always @(*) begin
         rd = instruction[11:7];
         sel_imm_b = 1;
         sel_imm_b2 = 1;
-        wb = rd != 0;
+        wb = rd != 0 ? {1'b1, sel_d_[funct3]} : 0;
         mem_read = 0;
         mem = 0;
         sel_pc_a = 0;
         branch = 0;
         comparison = 3'b0;
-        sel_d = sel_d_[funct3];
     end else if (s_type) begin        // S-type
         imm = {{21{instruction[31]}}, instruction[30:25], instruction[11:8], instruction[7]};
         alu_op = 2'b0;
@@ -111,7 +108,6 @@ always @(*) begin
         sel_pc_a = 0;
         branch = 0;
         comparison = 3'b0;
-        sel_d = 0;
     end else if (b_type) begin        // B-type
         imm = {{20{instruction[31]}}, instruction[7], instruction[30:25], instruction[11:8], 1'b0};
         alu_op = 2'b0;
@@ -129,7 +125,6 @@ always @(*) begin
         sel_pc_a = 1;
         branch = 1;
         comparison = funct3;
-        sel_d = 0;
     end else if (u_type) begin        // U-type
         imm = {instruction[31:12], 12'b0};
         alu_op = 0;
@@ -141,31 +136,29 @@ always @(*) begin
         rd = instruction[11:7];
         sel_imm_b = 1;
         sel_imm_b2 = 1;
-        wb = rd != 0;
+        wb = rd != 0 ? {1'b1, instruction[5]} : 0;
         mem_read = 0;
         mem = 0;
         sel_pc_a = 1;
         branch = 0;
         comparison = 0;
-        sel_d = instruction[5]; // lui/auipc
     end else begin        // J-type
         imm = {{12{instruction[31]}}, instruction[19:12], instruction[20], instruction[30:25], instruction[24:21], 1'b0};
-        alu_op = 2'b0;
+        alu_op = 0;
         alu2_op = 0;
         alt_op = 0;
         alt2_op = 0;
-        ra = instruction[19:15];
-        rb = instruction[24:20];
-        rd = 5'b0;
+        ra = 5'b0;
+        rb = 5'b0;
+        rd = instruction[11:7];
         sel_imm_b = 1;
-        sel_imm_b2 = 1;
-        wb = 0;
+        sel_imm_b2 = 0;
+        wb = rd != 0 ? 1 : 0;
         mem_read = 0;
-        mem = 1;
+        mem = 0;
         sel_pc_a = 1;
         branch = 1;
-        comparison = funct3;
-        sel_d = 0;
+        comparison = 0;
     end
 end
 

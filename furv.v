@@ -31,9 +31,8 @@ wire [4:0] rd;
 wire sel_pc_a;
 wire sel_imm_b;
 wire sel_imm_b2;
-wire wb;
+wire [1:0] wb;
 wire branch;
-wire sel_d;
 wire [2:0] comparison;
 
 wire [31:0] d;
@@ -55,7 +54,6 @@ decoder decoder(
     .sel_pc_a(sel_pc_a),
     .sel_imm_b(sel_imm_b),
     .sel_imm_b2(sel_imm_b2),
-    .sel_d(sel_d),
 
     .wb(wb),
     .mem(mem),
@@ -83,13 +81,16 @@ alu alu(
 
 wire cc = !comparison[2] ? r[ra] == r[rb] : d2[0];
 wire branch_taken = branch && (cc ^ comparison[0]);
+wire [31:0] adjacent_pc = pc + 4;
 
 always @(negedge clk) begin
-    if (wb) begin
-        r[rd] <= sel_d ? d2 : d;
-    end
+    case (wb)
+    1: r[rd] <= adjacent_pc;
+    2: r[rd] <= d;
+    3: r[rd] <= d2;
+    endcase
 
-    pc <= branch_taken ? d : pc + 4;
+    pc <= branch_taken ? d : adjacent_pc;
 end
 
 endmodule
