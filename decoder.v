@@ -45,12 +45,11 @@ end
 wire [2:0] funct3 = instruction[14:12];
 wire [6:0] funct7 = instruction[31:25];
 
-wire [4:0] op = instruction[6:2];
-wire j_type = op[1];
-wire u_type = op[2] & op[0];
-wire r_type = !op[4] & op[3] & op[2];
-wire s_type = !op[4] & op[3];
-wire b_type = op[4] & !op[2] & !op[1] & !op[0];
+wire r = instruction[6:2] == 5'b01100;
+wire j = instruction[3];
+wire s = instruction[6:3] == 4'b0100;
+wire b = instruction[6] && instruction[4:2] == 0;
+wire u = instruction[4] && instruction[2];
 
 always @(*) begin 
     mem = &(~{instruction[6], instruction[4:2]});
@@ -59,7 +58,7 @@ always @(*) begin
     rb = instruction[24:20];
     rd = instruction[11:7];
 
-    if (j_type) begin        // J-type
+    if (j) begin        // J-type
         alu_op = 0;
         alu2_op = 0;
         alt_op = 0;
@@ -69,7 +68,7 @@ always @(*) begin
         sel_pc_a = 1;
         branch = 1;
         comparison = 0;
-    end else if (u_type) begin        // U-type
+    end else if (u) begin        // U-type
         alu_op = 0;
         alu2_op = 3;
         alt_op = 0;
@@ -79,7 +78,7 @@ always @(*) begin
         sel_pc_a = 1;
         branch = 0;
         comparison = 0;
-    end else if (r_type) begin        // R-type
+    end else if (r) begin        // R-type
         alu_op = alu_ops(funct3);
         alu2_op = alu2_ops(funct3);
         alt_op = funct7 == 'h20;
@@ -89,7 +88,7 @@ always @(*) begin
         sel_pc_a = 0;
         branch = 0;
         comparison = 3'b0;
-    end else if (s_type) begin        // S-type
+    end else if (s) begin        // S-type
         alu_op = 2'b0;
         alu2_op = 0;
         alt_op = 0;
@@ -99,7 +98,7 @@ always @(*) begin
         sel_pc_a = 0;
         branch = 0;
         comparison = 3'b0;
-    end else if (b_type) begin        // B-type
+    end else if (b) begin        // B-type
         alu_op = 2'b0;
         alu2_op = 1; // Comparison
         alt_op = 0;
