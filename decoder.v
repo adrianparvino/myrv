@@ -136,7 +136,7 @@ always @(*) begin
         rd = instruction[11:7];
         sel_imm_b = 1;
         sel_imm_b2 = 1;
-        wb = rd != 0 ? {1'b1, instruction[5]} : 0;
+        wb = rd != 0 ? {1'b1, instruction[5]} : 0; // 1: lui, 0: auipc
         mem_read = 0;
         mem = 0;
         sel_pc_a = 1;
