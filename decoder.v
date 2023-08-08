@@ -57,11 +57,11 @@ always @(*) begin
     ra = instruction[19:15];
     rb = instruction[24:20];
     rd = instruction[11:7];
+    alt_op = r && funct7 == 'h20;
 
     if (j) begin        // J-type
         alu_op = 0;
         alu2_op = 0;
-        alt_op = 0;
         alt2_op = 0;
         sel_imm_b = 1;
         wb = rd != 0 ? 1 : 0;
@@ -71,7 +71,6 @@ always @(*) begin
     end else if (u) begin        // U-type
         alu_op = 0;
         alu2_op = 3;
-        alt_op = 0;
         alt2_op = 0;
         sel_imm_b = !instruction[5];
         wb = rd != 0 ? {1'b1, instruction[5]} : 0; // 1: lui, 0: auipc
@@ -81,7 +80,6 @@ always @(*) begin
     end else if (r) begin        // R-type
         alu_op = alu_ops(funct3);
         alu2_op = alu2_ops(funct3);
-        alt_op = funct7 == 'h20;
         alt2_op = funct7 == 'h20;
         sel_imm_b = sel_d_[funct3];
         wb = rd != 0 ? {1'b1, sel_d_[funct3]} : 0;
@@ -91,7 +89,6 @@ always @(*) begin
     end else if (s) begin        // S-type
         alu_op = 2'b0;
         alu2_op = 0;
-        alt_op = 0;
         alt2_op = 0;
         sel_imm_b = 1;
         wb = 0;
@@ -101,7 +98,6 @@ always @(*) begin
     end else if (b) begin        // B-type
         alu_op = 2'b0;
         alu2_op = 1; // Comparison
-        alt_op = 0;
         alt2_op = 0;
         sel_imm_b = 1;
         wb = 0;
@@ -111,7 +107,6 @@ always @(*) begin
     end else begin        // I-type
         alu_op = alu_ops(funct3);
         alu2_op = alu2_ops(funct3);
-        alt_op = 0;
         alt2_op = instruction[30];
         sel_imm_b = !sel_d_[funct3];
         wb = rd != 0 ? {1'b1, sel_d_[funct3]} : 0;
