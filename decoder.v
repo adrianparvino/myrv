@@ -1,6 +1,5 @@
 module decoder(
     input [31:0] instruction,
-    output reg [31:0] imm,
     output reg [1:0] alu_op,
     output reg [1:0] alu2_op,
     output reg alt_op,
@@ -61,7 +60,6 @@ always @(*) begin
     rd = instruction[11:7];
 
     if (j_type) begin        // J-type
-        imm = {{12{instruction[31]}}, instruction[19:12], instruction[20], instruction[30:25], instruction[24:21], 1'b0};
         alu_op = 0;
         alu2_op = 0;
         alt_op = 0;
@@ -72,7 +70,6 @@ always @(*) begin
         branch = 1;
         comparison = 0;
     end else if (u_type) begin        // U-type
-        imm = {instruction[31:12], 12'b0};
         alu_op = 0;
         alu2_op = 3;
         alt_op = 0;
@@ -83,7 +80,6 @@ always @(*) begin
         branch = 0;
         comparison = 0;
     end else if (r_type) begin        // R-type
-        imm = 32'b0;
         alu_op = alu_ops(funct3);
         alu2_op = alu2_ops(funct3);
         alt_op = funct7 == 'h20;
@@ -94,7 +90,6 @@ always @(*) begin
         branch = 0;
         comparison = 3'b0;
     end else if (s_type) begin        // S-type
-        imm = {{21{instruction[31]}}, instruction[30:25], instruction[11:8], instruction[7]};
         alu_op = 2'b0;
         alu2_op = 0;
         alt_op = 0;
@@ -105,7 +100,6 @@ always @(*) begin
         branch = 0;
         comparison = 3'b0;
     end else if (b_type) begin        // B-type
-        imm = {{20{instruction[31]}}, instruction[7], instruction[30:25], instruction[11:8], 1'b0};
         alu_op = 2'b0;
         alu2_op = 1; // Comparison
         alt_op = 0;
@@ -116,11 +110,10 @@ always @(*) begin
         branch = 1;
         comparison = funct3;
     end else begin        // I-type
-        imm = {{21{instruction[31]}}, instruction[30:20]};
         alu_op = alu_ops(funct3);
         alu2_op = alu2_ops(funct3);
         alt_op = 0;
-        alt2_op = imm[10];
+        alt2_op = instruction[30];
         sel_imm_b = !sel_d_[funct3];
         wb = rd != 0 ? {1'b1, sel_d_[funct3]} : 0;
         sel_pc_a = 0;

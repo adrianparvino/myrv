@@ -37,6 +37,11 @@ wire [2:0] comparison;
 wire [31:0] d;
 wire [31:0] d2;
 
+immdecoder immdecoder(
+    .instruction(instruction),
+    .imm(imm)
+);
+
 decoder decoder(
     .instruction(instruction),
 
@@ -49,7 +54,6 @@ decoder decoder(
     .rb(rb),
     .rd(rd),
 
-    .imm(imm),
     .sel_pc_a(sel_pc_a),
     .sel_imm_b(sel_imm_b),
 
