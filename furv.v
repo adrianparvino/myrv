@@ -87,6 +87,7 @@ wire [31:0] adjacent_pc = pc + 4;
 
 always @(negedge clk) begin
     case (wb)
+    0: r[rd] <= r[rd];
     1: r[rd] <= adjacent_pc;
     2: r[rd] <= d;
     3: r[rd] <= d2;
