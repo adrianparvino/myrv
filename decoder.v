@@ -111,7 +111,7 @@ always @(*) begin
     end else if (b_type) begin        // B-type
         imm = {{20{instruction[31]}}, instruction[7], instruction[30:25], instruction[11:8], 1'b0};
         alu_op = 2'b0;
-        alu2_op = 3;
+        alu2_op = 1; // Comparison
         alt_op = 0;
         alt2_op = 0;
         ra = instruction[19:15];
