@@ -51,16 +51,18 @@ wire s = instruction[6:3] == 4'b0100;
 wire b = instruction[6] && instruction[4:2] == 0;
 wire u = instruction[4] && instruction[2];
 
+wire ri = {j,s,b,u} == 0;
+
 always @(*) begin 
     mem = &(~{instruction[6], instruction[4:2]});
     mem_read = !instruction[5];
     ra = instruction[19:15];
     rb = instruction[24:20];
     rd = instruction[11:7];
+    alu_op = ri ? alu_ops(funct3) : 0;
     alt_op = r && funct7 == 'h20;
 
     if (j) begin        // J-type
-        alu_op = 0;
         alu2_op = 0;
         alt2_op = 0;
         sel_imm_b = 1;
@@ -69,7 +71,6 @@ always @(*) begin
         branch = 1;
         comparison = 0;
     end else if (u) begin        // U-type
-        alu_op = 0;
         alu2_op = 3;
         alt2_op = 0;
         sel_imm_b = !instruction[5];
@@ -78,7 +79,6 @@ always @(*) begin
         branch = 0;
         comparison = 0;
     end else if (r) begin        // R-type
-        alu_op = alu_ops(funct3);
         alu2_op = alu2_ops(funct3);
         alt2_op = funct7 == 'h20;
         sel_imm_b = sel_d_[funct3];
@@ -87,7 +87,6 @@ always @(*) begin
         branch = 0;
         comparison = 3'b0;
     end else if (s) begin        // S-type
-        alu_op = 2'b0;
         alu2_op = 0;
         alt2_op = 0;
         sel_imm_b = 1;
@@ -96,7 +95,6 @@ always @(*) begin
         branch = 0;
         comparison = 3'b0;
     end else if (b) begin        // B-type
-        alu_op = 2'b0;
         alu2_op = 1; // Comparison
         alt2_op = 0;
         sel_imm_b = 1;
@@ -105,7 +103,6 @@ always @(*) begin
         branch = 1;
         comparison = funct3;
     end else begin        // I-type
-        alu_op = alu_ops(funct3);
         alu2_op = alu2_ops(funct3);
         alt2_op = instruction[30];
         sel_imm_b = !sel_d_[funct3];
