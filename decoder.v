@@ -62,48 +62,43 @@ always @(*) begin
     alu_op = ri ? alu_ops(funct3) : 0;
     alt_op = r && funct7 == 'h20;
     sel_pc_a = j | u | b;
+    branch = j | b;
 
     if (j) begin        // J-type
         alu2_op = 0;
         alt2_op = 0;
         sel_imm_b = 1;
         wb = rd != 0 ? 1 : 0;
-        branch = 1;
         comparison = 0;
     end else if (u) begin        // U-type
         alu2_op = 3;
         alt2_op = 0;
         sel_imm_b = !instruction[5];
         wb = rd != 0 ? {1'b1, instruction[5]} : 0; // 1: lui, 0: auipc
-        branch = 0;
         comparison = 0;
     end else if (r) begin        // R-type
         alu2_op = alu2_ops(funct3);
         alt2_op = funct7 == 'h20;
         sel_imm_b = sel_d_[funct3];
         wb = rd != 0 ? {1'b1, sel_d_[funct3]} : 0;
-        branch = 0;
         comparison = 3'b0;
     end else if (s) begin        // S-type
         alu2_op = 0;
         alt2_op = 0;
         sel_imm_b = 1;
         wb = 0;
-        branch = 0;
         comparison = 3'b0;
     end else if (b) begin        // B-type
         alu2_op = 1; // Comparison
         alt2_op = 0;
         sel_imm_b = 1;
         wb = 0;
-        branch = 1;
         comparison = funct3;
     end else begin        // I-type
         alu2_op = alu2_ops(funct3);
         alt2_op = instruction[30];
         sel_imm_b = !sel_d_[funct3];
         wb = rd != 0 ? {1'b1, sel_d_[funct3]} : 0;
-        branch = 0;
         comparison = 3'b0;
     end
 end
