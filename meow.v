@@ -4,14 +4,15 @@ module meow;
 reg [31:0] rom[15:0];
 wire [31:0] pc;
 
-wire [31:0] data;
+wire [31:0] data_in;
+wire [31:0] data_out;
 wire [31:0] addr;
 wire mem_read;
 wire mem;
 
 reg clk;
 
-furv core(rom[pc >> 2], pc, data, addr, mem_read, mem, clk);
+furv core(rom[pc >> 2], pc, data_in, data_out, addr, mem_read, mem, clk);
 
 initial begin
     #5 clk = 0;
@@ -48,7 +49,7 @@ always @(posedge(clk)) begin
     if (mem) begin
         if (!mem_read) begin
             if (addr == 1024) begin
-                $display ("data=%b, addr=%b", data, addr); 
+                $display ("data_out=%b, addr=%b", data_out, addr); 
             end
         end
     end

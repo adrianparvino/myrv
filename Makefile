@@ -1,5 +1,5 @@
 myrv.json: furv.v alu.v decoder.v immdecoder.v
-	yosys -D LENS_NR=8 -p "read_verilog furv.v alu.v decoder.v immdecoder.v; synth_gowin -json myrv.json";
+	yosys -p "read_verilog furv.v alu.v decoder.v immdecoder.v; proc; flatten; wreduce; alumacc; share -aggressive; opt_share; opt_expr -full; opt;; wreduce;; wreduce;; synth_gowin -json myrv.json";
 
 pnrmyrv.json: myrv.json
 	nextpnr-gowin --json myrv.json --write pnrmyrv.json --device GW1NR-LV9QN88PC6/I5

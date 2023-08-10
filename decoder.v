@@ -31,19 +31,11 @@ function [1:0] alu2_ops (input [2:0] funct3);
     alu2_ops = {funct3[2], funct3[1]};
 endfunction
 
-reg sel_d_ [7:0]; initial begin
-    sel_d_[3'b000] = 0;
-    sel_d_[3'b001] = 1;
-    sel_d_[3'b010] = 1;
-    sel_d_[3'b011] = 1;
-    sel_d_[3'b100] = 0;
-    sel_d_[3'b101] = 1;
-    sel_d_[3'b110] = 0;
-    sel_d_[3'b111] = 0;
-end
+function sel_d_ (input [2:0] funct3);
+    sel_d_ = funct3 == 1 | funct3 == 2 | funct3 == 3 | funct3 == 5;
+endfunction
 
 wire [2:0] funct3 = instruction[14:12];
-wire [6:0] funct7 = instruction[31:25];
 
 wire r = instruction[6:2] == 5'b01100;
 wire j = instruction[3];
@@ -53,7 +45,7 @@ wire u = instruction[4] && instruction[2];
 
 wire ri = {j,s,b,u} == 0;
 
-always @(*) begin 
+always @* begin 
     mem = &(~{instruction[6], instruction[4:2]});
     mem_read = !instruction[5];
     ra = instruction[19:15];
@@ -61,10 +53,10 @@ always @(*) begin
     rd = instruction[11:7];
     alu_op = ri ? alu_ops(funct3) : 0;
     alt_op = r & instruction[30];
+    alt2_op = ri & instruction[30];
     sel_pc_a = j | u | b;
     branch = j | b;
     comparison = funct3;
-    alt2_op = ri & instruction[30];
 
     if (j) begin        // J-type
         alu2_op = 0;
@@ -76,8 +68,8 @@ always @(*) begin
         wb = rd != 0 ? {1'b1, instruction[5]} : 0; // 1: lui, 0: auipc
     end else if (r) begin        // R-type
         alu2_op = alu2_ops(funct3);
-        sel_imm_b = sel_d_[funct3];
-        wb = rd != 0 ? {1'b1, sel_d_[funct3]} : 0;
+        sel_imm_b = sel_d_(funct3);
+        wb = rd != 0 ? {1'b1, sel_d_(funct3)} : 0;
     end else if (s) begin        // S-type
         alu2_op = 0;
         sel_imm_b = 1;
@@ -88,8 +80,8 @@ always @(*) begin
         wb = 0;
     end else begin        // I-type
         alu2_op = alu2_ops(funct3);
-        sel_imm_b = !sel_d_[funct3];
-        wb = rd != 0 ? {1'b1, sel_d_[funct3]} : 0;
+        sel_imm_b = !sel_d_(funct3);
+        wb = rd != 0 ? {1'b1, sel_d_(funct3)} : 0;
     end
 end
 
