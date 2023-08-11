@@ -38,12 +38,6 @@ wire [31:0] alu_output2;
 wire mem_read;
 wire mem;
 
-reg[31:0] alu_a;
-reg[31:0] alu_b;
-
-reg[31:0] alu_a2;
-reg[31:0] alu_b2;
-
 immdecoder immdecoder(
     .instruction(instruction),
     .imm(imm)
@@ -73,11 +67,11 @@ decoder decoder(
 );
 
 alu alu(
-    .a(alu_a),
-    .b(alu_b),
+    .a(sel_pc_a ? pc : r[ra]),
+    .b(sel_imm_b ? imm : r[rb]),
 
-    .a2(alu_a2),
-    .b2(alu_b2),
+    .a2(r[ra]),
+    .b2(!sel_imm_b ? imm : r[rb]),
 
     .d(alu_output),
     .d2(alu_output2),
@@ -91,14 +85,6 @@ alu alu(
 wire cc = !comparison[2] ? r[ra] == r[rb] : alu_output2[0];
 wire branch_taken = branch && (cc ^ comparison[0]);
 wire [31:0] adjacent_pc = pc + 4;
-
-always @(posedge clk) begin
-    alu_a <= sel_pc_a ? pc : r[ra];
-    alu_b <= sel_imm_b ? imm : r[rb];
-
-    alu_a2 <= r[ra];
-    alu_b2 <= !sel_imm_b ? imm : r[rb];
-end
 
 always @(negedge clk) begin
     case (wb)
