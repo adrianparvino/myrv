@@ -9,7 +9,7 @@ wire b = instruction[6] && instruction[4:2] == 0;
 wire u = instruction[4] && instruction[2];
 
 (*onehot*)
-wire jsbu = {j,s,b,u};
+wire [3:0] jsbu = {j,s,b,u};
 
 always @(*) begin
     imm[31] = instruction[31];
