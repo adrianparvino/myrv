@@ -5,8 +5,8 @@ module furv(
     input [31:0] data_in,
     output reg [31:0] data_out,
     output reg [31:0] addr,
-    output reg mem_read_out,
-    output reg mem_out,
+    output reg mem_en,
+    output reg mem_read,
 
     input clk
 );
@@ -35,8 +35,8 @@ wire [2:0] comparison;
 wire [31:0] alu_output;
 wire [31:0] alu_output2;
 
-wire mem_read;
-wire mem;
+wire decoder_mem_en;
+wire decoder_mem_read;
 
 immdecoder immdecoder(
     .instruction(instruction),
@@ -59,8 +59,8 @@ decoder decoder(
     .sel_imm_b(sel_imm_b),
 
     .wb(wb),
-    .mem(mem),
-    .mem_read(mem_read),
+    .mem(decoder_mem_en),
+    .mem_read(decoder_mem_read),
 
     .branch(branch),
     .comparison(comparison)
@@ -95,16 +95,17 @@ always @(negedge clk) begin
 
     pc <= branch_taken ? alu_output : adjacent_pc;
 
-    if (!mem) begin
-        mem_out <= 0;
+    if (decoder_mem_en) begin
+        mem_en <= 1'b1;
+        mem_read <= decoder_mem_read;
     end else begin
-        mem_out <= mem;
-        mem_read_out <= mem_read;
+        mem_en <= 1'b0;
+        mem_read <= decoder_mem_read;
+    end
 
-        if (!mem_read_out) begin
-            data_out <= r[rb];
-            addr <= alu_output;
-        end
+    if (decoder_mem_en && !decoder_mem_read) begin
+        data_out <= r[rb];
+        addr <= alu_output;
     end
 end
 

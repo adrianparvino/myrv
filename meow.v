@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 module meow;
 
-reg [31:0] rom[15:0];
+wire [31:0] instruction;
 wire [31:0] pc;
 
 wire [31:0] data_in;
@@ -12,7 +12,20 @@ wire mem;
 
 reg clk;
 
-furv core(rom[pc >> 2], pc, data_in, data_out, addr, mem_read, mem, clk);
+rom rom(pc, instruction);
+
+furv core(
+    .instruction(instruction), 
+    .pc(pc), 
+
+    .data_in(data_in), 
+    .data_out(data_out), 
+    .addr(addr), 
+    .mem_en(mem), 
+    .mem_read(mem_read), 
+
+    .clk(clk)
+);
 
 initial begin
     #5 clk = 0;
@@ -20,27 +33,7 @@ initial begin
         #5 clk = ~clk;
 end
 
-integer i;
-initial begin
-    rom[0] = 32'h40000113; // li	sp,1024
-    rom[1] = 32'h01000193; // li	gp,16
-    rom[2] = 32'h00110023; // sb	ra,0(sp)
-    rom[3] = 32'h00108093; // add	ra,ra,1
-    rom[4] = 32'hfe309ce3; // bne	ra,gp,8 <.L1^B1>
-
-    // rom[0] = 32'h40010113;
-    // rom[1] = 32'h00110023;
-    
-    // for (i=2;i<=12;i=i+2) begin
-    //     rom[i] <= 32'h00108093;
-    //     rom[i+1] <= 32'h00110023;
-    // end
-
-    // rom[14] <= 32'h401080b3;
-    // rom[15] <= 32'h00100023;
-end
-
-initial #10000000 $finish;
+initial #1000 $finish;
 
 initial begin
 end
