@@ -42,12 +42,14 @@ uart uart(
 );
 
 ram ram(
-    .addr(addr),
+    .read_addr(addr[7:0]),
+    .write_addr(addr[7:0]),
     .data_in(data_out),
     .data_out(data_in),
-    .mem_read(mem_read),
-    .mem_en(mem_en),
-    .clk(sysclk)
+    .mem_read(mem_en && 256 <= addr && addr < 256 + 256 && mem_read),
+    .mem_write(mem_en && 256 <= addr && addr < 256 + 256 && !mem_read),
+    .read_clk(sysclk),
+    .write_clk(sysclk)
 );
 
 rom rom(
