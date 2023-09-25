@@ -107,7 +107,7 @@ always @(negedge clk) begin
             data_out <= r[rb];
         end
 
-        case (wb)
+        case (rd != 0 ? wb : 0)
         1: r[rd] <= adjacent_pc;
         2: r[rd] <= alu_output;
         3: r[rd] <= alu_output2;

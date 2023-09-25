@@ -70,15 +70,15 @@ always @* begin
     if (j) begin        // J-type
         alu2_op = 0;
         sel_imm_b = 1;
-        wb = rd != 0 ? 1 : 0;
+        wb = 1;
     end else if (u) begin        // U-type
         alu2_op = 3;
         sel_imm_b = !instruction[5];
-        wb = rd != 0 ? {1'b1, instruction[5]} : 0; // 1: lui, 0: auipc
+        wb = {1'b1, instruction[5]}; // 1: lui, 0: auipc
     end else if (r) begin        // R-type
         alu2_op = alu2_ops(funct3);
         sel_imm_b = sel_d_(funct3);
-        wb = rd != 0 ? {1'b1, sel_d_(funct3)} : 0;
+        wb = {1'b1, sel_d_(funct3)};
     end else if (s) begin        // S-type
         alu2_op = 0;
         sel_imm_b = 1;
@@ -90,7 +90,7 @@ always @* begin
     end else begin        // I-type
         alu2_op = alu2_ops(funct3);
         sel_imm_b = instruction[6:2] == 5'b0 | !sel_d_(funct3);
-        wb = rd != 0 ? {1'b1, sel_d_(funct3)} : 0;
+        wb = {1'b1, sel_d_(funct3)};
     end
 end
 
