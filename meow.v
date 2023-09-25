@@ -14,6 +14,17 @@ reg clk;
 
 rom rom(pc, instruction);
 
+ram ram(
+    .read_addr(addr[7:0]),
+    .write_addr(addr[7:0]),
+    .data_in(data_out),
+    .data_out(data_in),
+    .mem_read(mem && mem_read),
+    .mem_write(mem && !mem_read),
+    .read_clk(clk),
+    .write_clk(clk)
+);
+
 furv core(
     .instruction(instruction), 
     .pc(pc), 
@@ -33,7 +44,7 @@ initial begin
         #5 clk = ~clk;
 end
 
-initial #1000 $finish;
+initial #10000 $finish;
 
 initial begin
 end

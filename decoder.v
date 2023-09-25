@@ -13,7 +13,9 @@ module decoder(
     output reg mem_read,
     output reg mem,
     output reg branch,
-    output reg [2:0] comparison
+    output reg unconditional_branch,
+    output reg eq_compare,
+    output reg inv_compare
 );
 
 function [1:0] alu_ops (input [2:0] funct3);
@@ -31,32 +33,39 @@ function [1:0] alu2_ops (input [2:0] funct3);
     alu2_ops = {funct3[2], funct3[1]};
 endfunction
 
+wire [7:0] lut = 8'b00101110;
+
 function sel_d_ (input [2:0] funct3);
-    sel_d_ = funct3 == 1 | funct3 == 2 | funct3 == 3 | funct3 == 5;
+    sel_d_ = lut[funct3];
 endfunction
 
 wire [2:0] funct3 = instruction[14:12];
 
 wire r = instruction[6:2] == 5'b01100;
-wire j = instruction[3];
+wire jal = instruction[4:2] == 3'b011;
+wire jalr = instruction[4:2] == 3'b001;
+wire j = jal | jalr;
 wire s = instruction[6:3] == 4'b0100;
 wire b = instruction[6] && instruction[4:2] == 0;
 wire u = instruction[4] && instruction[2];
 
-wire ri = {j,s,b,u} == 0;
+// wire ri = {j,s,b,u} == 0;
+wire alu1_en = {instruction[6], instruction[4:2]} == 4'b0100;
 
-always @* begin 
+always @* begin
     mem = &(~{instruction[6], instruction[4:2]});
     mem_read = !instruction[5];
     ra = instruction[19:15];
     rb = instruction[24:20];
     rd = instruction[11:7];
-    alu_op = ri ? alu_ops(funct3) : 0;
+    alu_op = alu1_en ? alu_ops(funct3) : 0;
     alt_op = r & instruction[30];
-    alt2_op = ri & instruction[30];
-    sel_pc_a = j | u | b;
+    alt2_op = alu1_en & instruction[30];
+    sel_pc_a = jal | u | b;
     branch = j | b;
-    comparison = funct3;
+    unconditional_branch = j;
+    eq_compare = !funct3[2];
+    inv_compare = funct3[0];
 
     if (j) begin        // J-type
         alu2_op = 0;
@@ -80,7 +89,7 @@ always @* begin
         wb = 0;
     end else begin        // I-type
         alu2_op = alu2_ops(funct3);
-        sel_imm_b = !sel_d_(funct3);
+        sel_imm_b = instruction[6:2] == 5'b0 | !sel_d_(funct3);
         wb = rd != 0 ? {1'b1, sel_d_(funct3)} : 0;
     end
 end

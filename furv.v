@@ -1,6 +1,7 @@
 module furv(
+
     input [31:0] instruction,
-    output reg [31:0] pc,
+    output reg [31:0] pc = 0,
 
     input [31:0] data_in,
     output reg [31:0] data_out,
@@ -12,8 +13,6 @@ module furv(
 );
 
 integer i;
-
-initial pc = 0;
 
 reg [31:0] r [31:0];
 initial for (i=0;i<32;i=i+1) r[i] = 32'b0;
@@ -30,7 +29,9 @@ wire sel_pc_a;
 wire sel_imm_b;
 wire [1:0] wb;
 wire branch;
-wire [2:0] comparison;
+wire unconditional_branch;
+wire eq_compare;
+wire inv_compare;
 
 wire [31:0] alu_output;
 wire [31:0] alu_output2;
@@ -63,7 +64,9 @@ decoder decoder(
     .mem_read(decoder_mem_read),
 
     .branch(branch),
-    .comparison(comparison)
+    .unconditional_branch(unconditional_branch),
+    .eq_compare(eq_compare),
+    .inv_compare(inv_compare)
 );
 
 alu alu(
@@ -82,30 +85,37 @@ alu alu(
     .alt2_op(alt2_op)
 );
 
-wire cc = !comparison[2] ? r[ra] == r[rb] : alu_output2[0];
-wire branch_taken = branch && (cc ^ comparison[0]);
+wire cc = eq_compare ? r[ra] == r[rb] : alu_output2[0];
+wire branch_taken = branch && (unconditional_branch || (cc ^ inv_compare));
 wire [31:0] adjacent_pc = pc + 4;
 
 always @(negedge clk) begin
-    case (wb)
-    1: r[rd] <= adjacent_pc;
-    2: r[rd] <= alu_output;
-    3: r[rd] <= alu_output2;
-    endcase
+    // $display("PC=%x SP+12=%x, SP=%x RA=%x ADDR=%x,", pc, r[2] + 12, r[2], r[1], sel_imm_b);
+    if (mem_en) begin
+        mem_en <= 0;
 
-    pc <= branch_taken ? alu_output : adjacent_pc;
-
-    if (decoder_mem_en) begin
-        mem_en <= 1'b1;
-        mem_read <= decoder_mem_read;
+        r[rd] <= data_in;
+        pc <= adjacent_pc;
     end else begin
-        mem_en <= 1'b0;
-        mem_read <= decoder_mem_read;
-    end
+        if (decoder_mem_en) begin
+            mem_en <= decoder_mem_en;
+            mem_read <= decoder_mem_read;
+            addr <= alu_output;
+        end
 
-    if (decoder_mem_en && !decoder_mem_read) begin
-        data_out <= r[rb];
-        addr <= alu_output;
+        if (decoder_mem_en && !decoder_mem_read) begin
+            data_out <= r[rb];
+        end
+
+        case (wb)
+        1: r[rd] <= adjacent_pc;
+        2: r[rd] <= alu_output;
+        3: r[rd] <= alu_output2;
+        endcase
+
+        if (!decoder_mem_en) begin
+            pc <= branch_taken ? alu_output : adjacent_pc;
+        end
     end
 end
 

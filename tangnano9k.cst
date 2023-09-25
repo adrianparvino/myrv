@@ -33,6 +33,10 @@ IO_LOC "LCD_SYNC" 34;
 IO_LOC "LCD_XR"   32;
 IO_LOC "LCD_XL"   39;
 
+IO_LOC "uart_tx" 17;
+IO_PORT "uart_tx" IO_TYPE=LVCMOS33;
+IO_LOC "uart_rx" 18;
+IO_PORT "uart_rx" IO_TYPE=LVCMOS33;
 
 // true LVDS pins
 IO_LOC "tlvds_p" 25,26;
