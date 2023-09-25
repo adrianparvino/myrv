@@ -26,7 +26,7 @@ wire [4:0] ra;
 wire [4:0] rb;
 wire [4:0] rd;
 wire sel_pc_a;
-wire sel_imm_b;
+wire swap_imm_b;
 wire [1:0] wb;
 wire branch;
 wire unconditional_branch;
@@ -57,7 +57,7 @@ decoder decoder(
     .rd(rd),
 
     .sel_pc_a(sel_pc_a),
-    .sel_imm_b(sel_imm_b),
+    .swap_imm_b(swap_imm_b),
 
     .wb(wb),
     .mem(decoder_mem_en),
@@ -71,10 +71,10 @@ decoder decoder(
 
 alu alu(
     .a(sel_pc_a ? pc : r[ra]),
-    .b(sel_imm_b ? imm : r[rb]),
+    .b(swap_imm_b ? imm : r[rb]),
 
     .a2(r[ra]),
-    .b2(!sel_imm_b ? imm : r[rb]),
+    .b2(!swap_imm_b ? imm : r[rb]),
 
     .d(alu_output),
     .d2(alu_output2),
@@ -90,7 +90,7 @@ wire branch_taken = branch && (unconditional_branch || (cc ^ inv_compare));
 wire [31:0] adjacent_pc = pc + 4;
 
 always @(negedge clk) begin
-    // $display("PC=%x SP+12=%x, SP=%x RA=%x ADDR=%x,", pc, r[2] + 12, r[2], r[1], sel_imm_b);
+    // $display("PC=%x SP+12=%x, SP=%x RA=%x ADDR=%x,", pc, r[2] + 12, r[2], r[1], swap_imm_b);
     if (mem_en) begin
         mem_en <= 0;
 

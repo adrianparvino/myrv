@@ -8,7 +8,7 @@ module decoder(
     output reg [4:0] rb,
     output reg [4:0] rd,
     output reg sel_pc_a,
-    output reg sel_imm_b,
+    output reg swap_imm_b,
     output reg [1:0] wb,
     output reg mem_read,
     output reg mem,
@@ -69,27 +69,27 @@ always @* begin
 
     if (j) begin        // J-type
         alu2_op = 0;
-        sel_imm_b = 1;
+        swap_imm_b = 1;
         wb = 1;
     end else if (u) begin        // U-type
         alu2_op = 3;
-        sel_imm_b = !instruction[5];
+        swap_imm_b = !instruction[5];
         wb = {1'b1, instruction[5]}; // 1: lui, 0: auipc
     end else if (r) begin        // R-type
         alu2_op = alu2_ops(funct3);
-        sel_imm_b = sel_d_(funct3);
+        swap_imm_b = sel_d_(funct3);
         wb = {1'b1, sel_d_(funct3)};
     end else if (s) begin        // S-type
         alu2_op = 0;
-        sel_imm_b = 1;
+        swap_imm_b = 1;
         wb = 0;
     end else if (b) begin        // B-type
         alu2_op = 1; // Comparison
-        sel_imm_b = 1;
+        swap_imm_b = 1;
         wb = 0;
     end else begin        // I-type
         alu2_op = alu2_ops(funct3);
-        sel_imm_b = instruction[6:2] == 5'b0 | !sel_d_(funct3);
+        swap_imm_b = instruction[6:2] == 5'b0 | !sel_d_(funct3);
         wb = {1'b1, sel_d_(funct3)};
     end
 end
