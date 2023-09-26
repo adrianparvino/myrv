@@ -16,11 +16,9 @@ module alu(
 
 reg ignore;
 
-wire [31:0] arith_result = alt_op ? a - b : a + b;
-
 always @* begin
     case (alu_op)
-        0: d = alt_op ? a - b : a + b;
+        0: d = !alt_op ? a + b : a - b;
         1: d = a & b;
         2: d = a ^ b;
         3: d = a | b;
