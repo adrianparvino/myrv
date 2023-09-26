@@ -27,7 +27,7 @@ wire [4:0] rb;
 wire [4:0] rd;
 wire sel_pc_a;
 wire swap_imm_b;
-wire [1:0] wb;
+wire wb;
 wire branch;
 wire unconditional_branch;
 wire eq_compare;
@@ -90,31 +90,30 @@ wire branch_taken = branch && (unconditional_branch || (cc ^ inv_compare));
 wire [31:0] adjacent_pc = pc + 4;
 
 always @(negedge clk) begin
-    // $display("PC=%x SP+12=%x, SP=%x RA=%x ADDR=%x,", pc, r[2] + 12, r[2], r[1], swap_imm_b);
-    if (mem_en) begin
+    // $display("PC=%x A0=%x A1=%x A2=%x A3=%x ALU1_OP=%x", pc, r[10], r[11], r[12], r[13], alu_op);
+    if (decoder_mem_en == mem_en) begin
         mem_en <= 0;
 
-        r[rd] <= data_in;
-        pc <= adjacent_pc;
-    end else begin
-        if (decoder_mem_en) begin
-            mem_en <= decoder_mem_en;
-            mem_read <= decoder_mem_read;
-            addr <= alu_output;
+        if (rd != 0) begin
+            if (unconditional_branch) begin
+                r[rd] <= adjacent_pc;
+            end else if (decoder_mem_en && decoder_mem_read) begin
+                r[rd] <= data_in;
+            end else begin
+                r[rd] <= wb ? alu_output2 : alu_output;
+            end
         end
+
+        pc <= branch_taken ? alu_output : adjacent_pc;
+    end else begin
+        // Stall condition
+
+        mem_en <= decoder_mem_en;
+        mem_read <= decoder_mem_read;
+        addr <= alu_output;
 
         if (decoder_mem_en && !decoder_mem_read) begin
             data_out <= r[rb];
-        end
-
-        case (rd != 0 ? wb : 0)
-        1: r[rd] <= adjacent_pc;
-        2: r[rd] <= alu_output;
-        3: r[rd] <= alu_output2;
-        endcase
-
-        if (!decoder_mem_en) begin
-            pc <= branch_taken ? alu_output : adjacent_pc;
         end
     end
 end

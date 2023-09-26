@@ -44,7 +44,7 @@ initial begin
         #5 clk = ~clk;
 end
 
-initial #10000 $finish;
+initial #1000 $finish;
 
 initial begin
 end
