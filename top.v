@@ -17,7 +17,8 @@ wire [31:0] addr;
 wire mem_read;
 wire mem_en;
 
-wire sysclk = counter[7];
+wire sysclk = counter[0];
+// wire sysclk = counter[0];
 // rPLL #( // For GW1NR-9 C6/I5
 //   .FCLKIN("27"),
 //   .IDIV_SEL(8), // -> PFD = 3 MHz (range: 3-400 MHz)
