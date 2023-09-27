@@ -4,10 +4,11 @@ module furv(
     output reg [31:0] pc = 0,
 
     input [31:0] data_in,
-    output reg [31:0] data_out,
-    output reg [31:0] addr,
-    output reg mem_en,
-    output reg mem_read,
+    output reg [31:0] data_out = 0,
+    output reg [31:0] addr = 0,
+    output reg mem_en = 0,
+    output reg mem_read = 0,
+    input read_ack,
 
     input clk
 );
@@ -90,8 +91,9 @@ wire branch_taken = branch && (unconditional_branch || (cc ^ inv_compare));
 wire [31:0] adjacent_pc = pc + 4;
 
 always @(negedge clk) begin
-    // $display("PC=%x A0=%x A1=%x A2=%x A3=%x ALU1_OP=%x", pc, r[10], r[11], r[12], r[13], alu_op);
-    if (decoder_mem_en == mem_en) begin
+    // $display("PC=%x SP=%x", pc, r[1]);
+    // $display("PC=%x DMEMEN=%x MEMEN=%x", pc, decoder_mem_en, mem_en);
+    if ((decoder_mem_en == mem_en) && (!(decoder_mem_en && decoder_mem_read) || read_ack)) begin
         mem_en <= 0;
 
         if (rd != 0) begin

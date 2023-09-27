@@ -1,7 +1,7 @@
 module decoder(
     input [31:0] instruction,
     output [1:0] alu_op,
-    output reg [1:0] alu2_op,
+    output [1:0] alu2_op,
     output alt_op,
     output alt2_op,
     output [4:0] ra,
@@ -47,44 +47,41 @@ wire s = instruction[6:3] == 4'b0100;
 wire b = instruction[6] && instruction[4:2] == 0;
 wire u = instruction[4] && instruction[2];
 
-wire alu1_en = {instruction[6], instruction[4:2]} == 4'b0100;
-wire [15:0] swap_lut = 16'b0010111111010011;
+wire compute = {instruction[6], instruction[4:2]} == 4'b0100;
+wire [15:0] swap_lut = 16'b1110111111010011;
 
-assign ra = instruction[19:15];
+wire lui = {instruction[6:4], instruction[2]} == 4'b0111;
+
+assign ra = !lui ? instruction[19:15] : 0;
 assign rb = instruction[24:20];
 assign rd = instruction[11:7];
 
 assign mem = &(~{instruction[6], instruction[4:2]});
 assign mem_read = !instruction[5];
 
-assign alu_op = alu1_en ? alu_ops(funct3) : 0;
+assign alu_op = compute ? alu_ops(funct3) : 0;
 assign alt_op = r & instruction[30];
-assign alt2_op = alu1_en & instruction[30];
-assign sel_pc_a = instruction[6] ^ instruction[3] ^ instruction[2];
+assign alt2_op = compute & instruction[30];
+assign sel_pc_a = (instruction[6] && instruction[5] && (instruction[2] == instruction[3])) || (~instruction[6] && ~instruction[5] && (instruction[2] != instruction[3]));
 assign branch = j | b;
 assign unconditional_branch = j;
 assign eq_compare = !funct3[2];
 assign inv_compare = funct3[0];
 assign swap_imm_b = swap_lut[{instruction[5:4], instruction[2], sel_d_(funct3)}];
+assign alu2_op = compute ? alu2_ops(funct3) : {1'b0, b};
 
 always @* begin
     if (j) begin        // J-type
-        alu2_op = 0;
-        wb = 1;
+        wb = 0;
     end else if (u) begin        // U-type
-        alu2_op = 3;
-        wb = instruction[5]; // 1: lui, 0: auipc
+        wb = 0;
     end else if (r) begin        // R-type
-        alu2_op = alu2_ops(funct3);
         wb = sel_d_(funct3);
     end else if (s) begin        // S-type
-        alu2_op = 0;
         wb = 0;
     end else if (b) begin        // B-type
-        alu2_op = 1; // Comparison
         wb = 0;
     end else begin        // I-type
-        alu2_op = alu2_ops(funct3);
         wb = sel_d_(funct3);
     end
 end
