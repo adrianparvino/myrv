@@ -9,7 +9,7 @@ module decoder(
     output [4:0] rd,
     output sel_pc_a,
     output swap_imm_b,
-    output reg wb,
+    output wb,
     output mem_read,
     output mem,
     output branch,
@@ -69,21 +69,6 @@ assign eq_compare = !funct3[2];
 assign inv_compare = funct3[0];
 assign swap_imm_b = swap_lut[{instruction[5:4], instruction[2], sel_d_(funct3)}];
 assign alu2_op = compute ? alu2_ops(funct3) : {1'b0, b};
-
-always @* begin
-    if (j) begin        // J-type
-        wb = 0;
-    end else if (u) begin        // U-type
-        wb = 0;
-    end else if (r) begin        // R-type
-        wb = sel_d_(funct3);
-    end else if (s) begin        // S-type
-        wb = 0;
-    end else if (b) begin        // B-type
-        wb = 0;
-    end else begin        // I-type
-        wb = sel_d_(funct3);
-    end
-end
+assign wb = compute ? sel_d_(funct3) : 0;
 
 endmodule
